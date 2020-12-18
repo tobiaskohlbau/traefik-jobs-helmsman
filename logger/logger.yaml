@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: logger
+  namespace: logger
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: logger
+  template:
+    metadata:
+      labels:
+        app: logger
+    spec:
+      containers:
+      - name: logger
+        image: localhost:5000/logger
+        imagePullPolicy: Always
+        env:
+        - name: KEYFILE
+          value: "/tls/key.pem"
+        - name: CERTFILE
+          value: "/tls/cert.pem"
+        volumeMounts:
+        - name: tls
+          mountPath: "/tls"
+          readOnly: true
+      volumes:
+      - name: tls
+        secret:
+          secretName: logger-tls
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: logger
+  namespace: logger
+spec:
+  selector:
+    app: logger
+  ports:
+    - protocol: TCP
+      port: 443
+      targetPort: 443

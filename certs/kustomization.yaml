@@ -1,0 +1,8 @@
+secretGenerator:
+- name: logger-tls
+  namespace: logger
+  files:
+  - key.pem
+  - cert.pem
+generatorOptions:
+  disableNameSuffixHash: true

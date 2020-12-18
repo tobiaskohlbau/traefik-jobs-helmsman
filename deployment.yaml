@@ -1,0 +1,74 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: jobs-serviceaccount
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: jobs-role
+subjects:
+- kind: ServiceAccount
+  name: jobs-serviceaccount
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  name: cluster-admin
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jobs
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jobs
+  template:
+    metadata:
+      labels:
+        app: jobs
+    spec:
+      serviceAccountName: jobs-serviceaccount
+      containers:
+      - name: jobs
+        image: traefik/jobs:helmsman
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jobs
+spec:
+  selector:
+    app: jobs
+  ports:
+    - protocol: TCP
+      port: 8888
+      targetPort: 8888
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: jobs-ingress
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: jobs
+            port:
+              number: 8888
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: helmsman
+  namespace: default
+type: Opaque
+data:
+  helmsman: ZGNjOWM1MzA3NjdjMTAyNzY0ZDQ1ZDYyMWZjOTIzMTc=
+
