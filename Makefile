@@ -1,5 +1,6 @@
 deploy:
 	bash kind.sh
+	kubectl label namespace default observe=true
 	helm install --repo https://helm.traefik.io/traefik traefik traefik
 	kubectl create namespace logger
 	make logger

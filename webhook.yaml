@@ -3,23 +3,21 @@ kind: ValidatingWebhookConfiguration
 metadata:
   name: "jobs-policy.jobs.io"
 webhooks:
-- name: "jobs-policy.jobs.io"
-  namespaceSelector:
-    matchExpressions:
-    - key: "name"
-      operator: In
-      values: ["default"]
-  rules:
-  - apiGroups:   ["*"]
-    apiVersions: ["*"]
-    operations:  ["*"]
-    resources:   ["*"]
-    scope:       "Namespaced"
-  clientConfig:
-    service:
-      namespace: "logger"
-      name: "logger"
-    caBundle: {{{CA_BUNDLE}}}
-  admissionReviewVersions: ["v1"]
-  sideEffects: None
-  timeoutSeconds: 5
+  - name: "jobs-policy.jobs.io"
+    namespaceSelector:
+      matchLabels:
+        observe: "true"
+    rules:
+      - apiGroups: ["*"]
+        apiVersions: ["*"]
+        operations: ["*"]
+        resources: ["*"]
+        scope: "Namespaced"
+    clientConfig:
+      service:
+        namespace: "logger"
+        name: "logger"
+      caBundle: {{{CA_BUNDLE}}}
+    admissionReviewVersions: ["v1"]
+    sideEffects: None
+    timeoutSeconds: 5
