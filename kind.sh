@@ -11,8 +11,29 @@ if [ "${running}" != 'true' ]; then
     registry:2
 fi
 
+arch_name="$(uname -m)"
+image=kindest/node:latest
+
+if [ "${arch_name}" = "arm64" ] && [ ! -f .node_image_arm64 ]; then
+  tmpdir=$(mktemp -d)
+  pushd $tmpdir
+  git clone https://github.com/rosti/kind.git
+  cd kind
+  git checkout v0.9.0-build-node-image-binary
+  go build
+  curl -LO https://dl.k8s.io/v1.20.0/kubernetes-server-linux-arm64.tar.gz
+  tar zxf kubernetes-server-linux-arm64.tar.gz
+  ./kind build node-image --type bindir --kube-root kubernetes/server/bin --image kind-node-arm:latest
+  popd
+  rm -rf $tmpdir
+  touch .node_image_arm64
+fi
+if [ "${arch_name}" = "arm64" ]; then
+  image=kind-node-arm:latest
+fi
+
 # create a cluster with the local registry enabled in containerd
-cat <<EOF | kind create cluster --config=-
+cat <<EOF | kind create cluster --image=${image} --config=-
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
